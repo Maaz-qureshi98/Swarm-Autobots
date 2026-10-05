@@ -18,6 +18,7 @@ struct Params {
   double lam = 0.25, r_safe_us = 0.10, r_safe_ir = 0.10, ir_bearing = M_PI / 3;  // 60 deg
   double pace_e0 = 0.25, pace_e1 = 0.50, pace_min = 0.2, status_timeout = 1.0;
   double lookahead = 0.5;
+  bool predict = true;   // false: zero-order hold on the last leader packet (hardware ZOH runs)
 };
 
 // Leader state frame (20 B on air, see frames.py)
@@ -74,6 +75,9 @@ class SwarmAgent {
   int leader() const { return leader_; }
   int formation() const { return formation_id_; }
   double slotError() const { return my_err_; }
+  bool hasPacket() const { return has_pkt_; }
+  double packetAge(double t) const { return has_pkt_ ? t - t_rx_ : -1.0; }   // s, -1 before the first packet
+  void setPredict(bool on) { P_.predict = on; }
 
   // ------------------------------------------------------------ main cycle (20 Hz)
   Output step(double t, double x, double y, double th, double rf, double rl, double rr) {
@@ -175,6 +179,7 @@ class SwarmAgent {
   }
   void predict(double tau, double& x, double& y, double& th, double& v, double& w) const {
     x = pkt_.x; y = pkt_.y; th = pkt_.theta; v = pkt_.v; w = pkt_.w;
+    if (!P_.predict) return;                             // zero-order hold
     if (fabs(w) < 1e-3) { x += v * tau * cos(th); y += v * tau * sin(th); return; }
     double thn = th + w * tau;
     x += v / w * (sin(thn) - sin(th)); y -= v / w * (cos(thn) - cos(th)); th = wrapAngle(thn);

@@ -66,8 +66,8 @@ Simulation (26,160 missions with ground truth):
 
 Implementation checks:
 
-* `firmware/swarm_agent/SwarmAgent.h`: C++ port of the agent, identical to the Python agent over 11,688 closed-loop
-  steps (largest difference 1e-16), cross-compiles for the ESP32 in 5.9 kB code and 4.8 kB RAM.
+* `firmware/swarm_agent/SwarmAgent.h`: C++ port of the agent, identical to the Python agent, with prediction and in ZOH mode,
+  over 15,716 closed-loop steps (differences below 1e-13), cross-compiles for the ESP32 in 5.9 kB code and 4.8 kB RAM.
 * `tools/`: overhead-camera ArUco ground truth for hardware trials (self-test: 0.5 mm mean error), see
   [docs/hardware_evaluation.md](docs/hardware_evaluation.md).
 * `.github/workflows/ci.yml`: configured to run all tests and to build and launch the ROS 2 packages on ROS 2 Jazzy on every push (see the Actions tab).

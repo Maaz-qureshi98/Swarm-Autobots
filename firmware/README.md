@@ -40,13 +40,14 @@ leader prediction, look-ahead tracking, the range-based speed filter, and deadlo
 
 **Equivalence test.** `test/make_trace.py` records the Python agent in closed loop with the
 simulator (triangle, Y with two unmapped obstacles, leader failure at 40% loss, pattern
-switch at 60% loss); `test/test_equivalence.cpp` replays every input through the C++ agent:
+switch at 60% loss, and Y with one unmapped obstacle at 60% loss in ZOH mode); `test/test_equivalence.cpp`
+replays every input through the C++ agent:
 
 ```bash
 python3 firmware/test/make_trace.py
 cd firmware/test && g++ -O2 -std=c++17 -I../swarm_agent test_equivalence.cpp -o test_equivalence
 ./test_equivalence trace.txt
-# 4 scenarios, 11688 agent steps, 0 mismatches, max |dv| 0.00e+00, |dw| 1.11e-16
+# 5 scenarios (one in ZOH mode), 15716 agent steps, 0 mismatches, differences below 1e-13
 ```
 
 **ESP32 build check.** The agent cross-compiles warning-free for the ESP32 (Xtensa LX6,
@@ -69,6 +70,22 @@ swarm::Output o = agent.step(now_s, x, y, theta, us_m, ir_left_m, ir_right_m);
 setMotors(o.v, o.w);
 if (o.kind == 1) broadcastLeaderState(o.ls);      // 20 B, see frames.py
 if (o.kind == 2) broadcastStatus(o.status_id, o.status_leader, o.status_err);
+```
+
+**ZOH mode.** `Params::predict = false` (or `agent.setPredict(false)`) makes followers hold the last
+leader packet instead of predicting it, for the hardware ZOH vs prediction comparison.
+
+## Hardware revision trials (`swarm_agent/HwExperiment.h`, `compass_cal/`)
+
+`hw::GeDropper` injects Gilbert-Elliott loss (loss rate p, mean burst L) on received leader frames,
+`hw::CycleStats` times the control cycle with `micros()`, and `hw::logLine` writes one CSV line per
+cycle (packet age, injected drops, slot error, command, cycle time). `compass_cal/compass_cal.ino`
+measures each robot's heading error at known grid headings. Protocol and analysis:
+`docs/hardware_revision_protocol.md`, `tools/analyze_hw_trials.py`, `tools/analyze_compass.py`.
+
+```bash
+cd firmware/test && g++ -O2 -std=c++17 -I../swarm_agent test_ge_dropper.cpp -o test_ge && ./test_ge
+# reproduces p and L of the simulator's channel for p = 0.2-0.6, L = 1-12 -> PASS
 ```
 
 ## ESP-NOW loss test (`espnow_loss_test/`)

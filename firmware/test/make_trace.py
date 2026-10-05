@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..", "..")
 sys.path.insert(0, os.path.join(ROOT, "ros2_ws", "src", "swarm_autobots"))
 sys.path.insert(0, os.path.join(ROOT, "sim"))
-from swarm_autobots.agent import SwarmAgent, FORMATION_IDS
+from swarm_autobots.agent import SwarmAgent, FORMATION_IDS, Params
 from core import SwarmSim
 
 LOG = []
@@ -43,11 +43,15 @@ class Logged(SwarmAgent):
         return v, w, out
 
 
-def mission(name, form, p, seed, n_unknown=0, fail_time=None, switch=None, max_t=70.0):
-    LOG.append(f"N {name} 4 {FORMATION_IDS[form]}")
+class ZohParams(Params):
+    predict = False
+
+
+def mission(name, form, p, seed, n_unknown=0, fail_time=None, switch=None, max_t=70.0, predict=True):
+    LOG.append(f"N {name} 4 {FORMATION_IDS[form]} {int(predict)}")
     sim = SwarmSim(1, 4, form=form, p_loss=p, burst=4.0, seed=seed, n_unknown=n_unknown,
                    switch_to=(switch[1] if switch else None))
-    agents = [Logged(i, 4, form) for i in range(4)]
+    agents = [Logged(i, 4, form, params=Params if predict else ZohParams) for i in range(4)]
     for a in agents:
         a.set_path(sim.paths[0].tolist())
     rng = np.random.default_rng(seed)
@@ -90,5 +94,6 @@ if __name__ == "__main__":
     mission("Y_unmapped2_p02", "Y", 0.2, 3, n_unknown=2)
     mission("Y_leaderfail_p04", "Y", 0.4, 1, fail_time=12.0, max_t=90.0)
     mission("switch_tri_to_Y_p06", "triangle", 0.6, 2, switch=(12.0, "Y"))
+    mission("Y_unmapped1_p06_zoh", "Y", 0.6, 4, n_unknown=1, predict=False)   # hardware ZOH mode
     open(os.path.join(HERE, "trace.txt"), "w").write("\n".join(LOG) + "\n")
     print(len(LOG), "events,", sum(l.startswith("S") for l in LOG), "agent steps")

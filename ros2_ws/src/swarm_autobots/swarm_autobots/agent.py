@@ -29,6 +29,7 @@ class Params:
     lam, r_safe_us, r_safe_ir, ir_bearing = 0.25, 0.10, 0.10, math.radians(60)
     pace_e0, pace_e1, pace_min, status_timeout = 0.25, 0.50, 0.2, 1.0
     lookahead = 0.5
+    predict = True           # False: zero-order hold on the last leader packet (hardware ZOH runs)
 
 
 class SwarmAgent:
@@ -139,6 +140,8 @@ class SwarmAgent:
     def _predict(self, tau):
         m = self.pkt
         x, y, th, v, w = m["x"], m["y"], m["theta"], m["v"], m["w"]
+        if not self.P.predict:                      # zero-order hold
+            return x, y, th, v, w
         if abs(w) < 1e-3:
             return x + v * tau * math.cos(th), y + v * tau * math.sin(th), th, v, w
         thn = th + w * tau

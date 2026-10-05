@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
   while (std::getline(in, line)) {
     std::istringstream s(line); char c; s >> c;
     if (c == 'N') {
-      int n, f; s >> scen >> n >> f; ag.clear();
-      for (int i = 0; i < n; ++i) ag.emplace_back(i, n, f);
+      int n, f, pr = 1; s >> scen >> n >> f; if (!(s >> pr)) pr = 1; ag.clear();
+      for (int i = 0; i < n; ++i) { ag.emplace_back(i, n, f); ag.back().setPredict(pr != 0); }
       ++scenarios;
     } else if (c == 'P') {
       int id, n; s >> id >> n; std::vector<double> xy(2 * n);
