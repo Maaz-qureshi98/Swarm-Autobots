@@ -16,7 +16,7 @@ make test          # agent and ROS graph tests
 |---|---|---|
 | `experiments.py e1` | `e1_loss.json` | loss sweep (`fig_loss` a, b), formation-results table |
 | `experiments.py e1b` | `e1b_burst.json` | burst-length results |
-| `experiments.py e2` | `e2_safety.json` | unmapped obstacles (`fig_safety`) |
+| `experiments.py e2` | `e2_safety.json` | unmapped obstacles with the nominal 0.12 m disc (superseded by E13 in `fig_safety`) |
 | `experiments.py e3` | `e3_election.json` | leader-failure results |
 | `experiments.py e3x` | `e3_example.json` | one leader-failure run (`fig_election`) |
 | `experiments.py e4` | `e4_scale.json` | scalability (`fig_loss` c, d) |
@@ -29,7 +29,7 @@ make test          # agent and ROS graph tests
 | `mismatch_compass.py` | `e8b_compass.json` | compass-bias sweep |
 | `e9_review.py` | `e9_review.json` | component ablation, prediction-bound check, hardware-scale runs |
 | `e12_calib.py` | `e12_calib.json` | idealized prediction-bound check, compass/slip calibration |
-| `e13_footprint.py` | `e13_footprint.json` | collision studies with the 0.14 m circumscribed footprint (`fig_safety`, ablation table, lambda sweep, Table I collision check) |
+| `e13_footprint.py` | `e13_footprint.json` | contact studies with the 0.142 m circumscribed footprint (`fig_safety`, ablation table, lambda sweep, Table I contact check) |
 
 Every condition uses 100 missions (40 for scalability) with common random
 numbers across methods, so the tests are paired by mission.

@@ -1,5 +1,5 @@
 """Footprint check (E13): the safety and collision experiments repeated with the
-robot modelled as its 0.14 m circumscribed disc instead of the 0.12 m nominal disc.
+robot modelled as its 0.142 m circumscribed disc (half-diagonal of the 0.20 m square is 0.1414 m) instead of the 0.12 m nominal disc.
 R sets contact detection, the robot discs seen by the range sensors, and the A*
 inflation. Same seeds as E1, E2, E9, and the lambda sweep, so results are paired.
 Results -> results/e13_footprint.json"""
@@ -9,10 +9,10 @@ import core
 from runner import run
 from experiments import pack
 
-core.Cfg.R = 0.14
+core.Cfg.R = 0.142
 OUT = {"R": core.Cfg.R}
 
-# E2 at 0.14 m: unmapped obstacles near the path (Fig. 5)
+# E2 at 0.142 m: unmapped obstacles near the path (Fig. 5)
 e2 = []
 for form in ["triangle", "Y"]:
     for nu in [0, 1, 2, 3]:
@@ -22,7 +22,7 @@ for form in ["triangle", "Y"]:
             print("E13-e2", form, nu, m, f"coll {o['collisions'].mean():.2f} succ {o['success'].mean():.2f}", flush=True)
 OUT["e2"] = e2
 
-# E9 at 0.14 m: component ablation (Table II)
+# E9 at 0.142 m: component ablation (Table II)
 VARIANTS = [("full", "lpsi_pred", {}), ("no_prediction", "lpsi_zoh", {}),
             ("no_pacing", "lpsi_pred", {"pacing": False}),
             ("no_formation_aware", "lpsi_pred", {"form_aware": False}),
@@ -39,7 +39,7 @@ for name, m, kw in VARIANTS:
     print("E13-e9", name, {k: round(v, 3) for k, v in e9[name].items()}, flush=True)
 OUT["e9"] = e9
 
-# lambda sweep at 0.14 m
+# lambda sweep at 0.142 m
 lam_rows = []
 for lam in [0.1, 0.25, 0.5, 1.0]:
     core.Cfg.cbf_lam = lam
@@ -52,7 +52,7 @@ for lam in [0.1, 0.25, 0.5, 1.0]:
 core.Cfg.cbf_lam = 0.25
 OUT["lam"] = lam_rows
 
-# Table I conditions at 0.14 m (collisions and success, no unmapped obstacles)
+# Table I conditions at 0.142 m (collisions and success, no unmapped obstacles)
 e1 = []
 for form in ["triangle", "Y"]:
     for p in [0.2, 0.6]:

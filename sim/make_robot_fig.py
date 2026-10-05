@@ -59,7 +59,7 @@ axp.set_xlim(-0.5, pw - 0.5); axp.set_ylim(ph - 0.5, -0.5)
 ax = ax_in(0.02, 0.02, 1.55, 1.12)
 ax.set_aspect("equal"); ax.axis("off")
 title(ax, "(b) Sensor layout")
-R, m = 0.14, 0.10
+R, m = 0.142, 0.10
 ax.add_patch(Rectangle((-0.10, -0.10), 0.20, 0.20, fc="0.9", ec="k", lw=0.6))
 ax.add_patch(Circle((0, 0), R, fill=False, ls="--", lw=0.5, ec="0.4"))
 ax.add_patch(Wedge((m, 0), 0.34, -12, 12, fc="#E39B2D", alpha=0.4, lw=0))
@@ -77,7 +77,7 @@ ax.text(0.27, 0.36, "IR +60°\n0.1–0.8 m", fontsize=5.6, ha="left", va="center
 ax.text(0.27, -0.36, "IR −60°", fontsize=5.6, ha="left", va="center")
 ax.annotate("mounts at\n0.10 m", xy=(m * np.cos(np.radians(-60)), m * np.sin(np.radians(-60))), xytext=(-0.05, -0.33),
             fontsize=5.6, ha="right", va="center", linespacing=1.0, arrowprops=dict(arrowstyle="-", lw=0.4))
-ax.text(-0.165, 0.0, "$R$ = 0.14 m\n20×20 cm", fontsize=5.6, ha="right", va="center", linespacing=1.0)
+ax.text(-0.17, 0.0, "$R$ = 0.142 m\n20×20 cm", fontsize=5.6, ha="right", va="center", linespacing=1.0)
 ax.set_xlim(-0.40, 0.72); ax.set_ylim(-0.44, 0.44)
 
 # ---------------------------------------------------------------- (c) power and signal wiring

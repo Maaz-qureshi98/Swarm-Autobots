@@ -52,11 +52,11 @@ Repeated runs agreed within about ±5 cm. The flame sensor triggers up to
 Simulation (26,160 missions with ground truth):
 
 * The predictor cuts controller-level slot error by 41% (triangle) and 36% (Y) at 60% packet loss compared with a zero-order hold.
-* Under loss the swarm degrades less than a consensus baseline (Ren 2007) that sends 2.5 to 4.2 times more radio traffic: 0.175 m vs 0.194 m ground-truth RMSE at 60% loss.
-* At least 99% of missions are collision-free. With unmapped obstacles deadlock recovery raises success from 3% to 60%.
+* Under loss the swarm degrades less than a consensus baseline (Ren 2007) that sends 2.5 to 4.2 times more radio traffic: 0.170 m vs 0.191 m ground-truth RMSE at 60% loss (triangle).
+* With unmapped obstacles and a conservative 0.142 m footprint (it encloses the 20 cm square chassis), the safety layer keeps 76-93% of missions contact-free, against 0-7% without it; deadlock recovery raises success from 2% to 55%. Remaining contacts are side contacts in the blind sectors between the range rays.
 * Recovery after leader loss takes 1.65 s (no loss) to 1.95 s (60% loss); pattern switches take 1.40 to 1.69 s.
 * Every open-arena mission with up to 20 robots completes.
-* Ablation: removing the speed filter, recovery, formation-aware planning, or pacing each costs success or accuracy.
+* Ablation: removing any component worsens at least one measured outcome; the speed filter and recovery matter most for completion.
 * Constant-twist prediction error grows as τ^1.92 against τ^1.00 for a zero-order hold, as predicted.
 * Calibration: the simulator reproduces the hardware errors with a compass-bias spread of 0.25–0.5° and
   at most 1–2% slip, so the datasheet-based nominal model is conservative.

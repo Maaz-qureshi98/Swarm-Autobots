@@ -14,8 +14,8 @@ from core import formation
 
 plt.rcParams.update({
     "font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"], "mathtext.fontset": "stix",
-    "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8, "xtick.labelsize": 7.5, "ytick.labelsize": 7.5,
-    "legend.fontsize": 7.5, "axes.linewidth": 0.5, "xtick.major.width": 0.5, "ytick.major.width": 0.5,
+    "font.size": 8.8, "axes.titlesize": 8.8, "axes.labelsize": 8.8, "xtick.labelsize": 8.2, "ytick.labelsize": 8.2,
+    "legend.fontsize": 8.2, "axes.linewidth": 0.5, "xtick.major.width": 0.5, "ytick.major.width": 0.5,
     "xtick.major.size": 2, "ytick.major.size": 2, "xtick.direction": "in", "ytick.direction": "in",
     "axes.titlepad": 3, "pdf.fonttype": 42,
 })
@@ -35,7 +35,7 @@ def load(f, crop):
 
 def label(ax, P, x, y, txt, dx, dy, col="black"):
     px, py = P(x, y); tx, ty = P(x + dx, y + dy)
-    ax.annotate(txt, (px, py), (tx, ty), ha="center", va="center", fontsize=7.5, color="black",
+    ax.annotate(txt, (px, py), (tx, ty), ha="center", va="center", fontsize=8.2, color="black",
                 path_effects=HALO, arrowprops=dict(arrowstyle="-", lw=0.6, color="black", shrinkA=3, shrinkB=0,
                                                     path_effects=[pe.withStroke(linewidth=1.4, foreground="white")]), zorder=5)
     ax.plot(px, py, "o", ms=2.2, mfc="black", mec="white", mew=0.4, zorder=6)
@@ -46,7 +46,7 @@ def dim(ax, P, a, b, txt, o=(0, 0)):
     ax.annotate("", pa, pb, arrowprops=dict(arrowstyle="<|-|>,head_length=0.25,head_width=0.12", lw=0.6,
                                             color="black", shrinkA=0, shrinkB=0), zorder=4)
     m = ((pa[0] + pb[0]) / 2 + o[0], (pa[1] + pb[1]) / 2 + o[1])
-    ax.text(*m, txt, fontsize=7.5, color="black", ha="center", va="center", path_effects=HALO, zorder=6)
+    ax.text(*m, txt, fontsize=8.2, color="black", ha="center", va="center", path_effects=HALO, zorder=6)
 
 
 def frame(ax):
@@ -125,8 +125,9 @@ def snapshot(ax, form, seed, n_unknown, when, label_txt):
             sl = pos[k, 0] + np.array([c * off[i, 0] - s * off[i, 1], s * off[i, 0] + c * off[i, 1]])
             ax.add_patch(Rectangle(sl - 0.1, 0.2, 0.2, fill=False, ec=ROB[i], lw=0.5, ls=(0, (1.5, 1.2)), zorder=3))
     ax.plot([cen[0] - 1.4, cen[0] - 0.9], [cen[1] - 0.8] * 2, "k-", lw=0.8)
-    ax.text(cen[0] - 1.15, cen[1] - 0.76, "0.5 m", ha="center", va="bottom", fontsize=7.5)
-    ax.text(cen[0] + 1.45, cen[1] + 0.84, f"{label_txt}, $t$ = {t[k]:.1f} s", ha="right", va="top", fontsize=7.5, path_effects=HALO)
+    ax.text(cen[0] - 1.15, cen[1] - 0.76, "0.5 m", ha="center", va="bottom", fontsize=8.2)
+    ax.text(cen[0] + 1.45, cen[1] + 0.84, f"{label_txt}, $t$ = {t[k]:.1f} s", ha="right", va="top", fontsize=8.2, zorder=7,
+            bbox=dict(boxstyle="square,pad=0.12", fc="white", ec="none", alpha=0.85))
     frame(ax)
 
 
@@ -158,18 +159,18 @@ for j, (f, groups, note) in enumerate(meas):
     ax.spines["top"].set_visible(False); ax.spines["right"].set_visible(False)
     if j == 0:
         ax.set_ylabel("Spacing dev. [cm]")
-        ax.text(0, -0.3, "Alpha on\ntable", ha="center", va="top", fontsize=7, color=GREY)
+        ax.text(0, -0.3, "Alpha on\ntable", ha="center", va="top", fontsize=7.7, color=GREY)
     else:
         ax.set_yticklabels([])
     if n > 1:
         ax.legend(ncol=3, loc="lower left", frameon=False, handlelength=0.9, columnspacing=0.7, borderaxespad=0.1)
-    ax.text(0.99, 0.99, note, transform=ax.transAxes, ha="right", va="top", fontsize=7.5)
+    ax.text(0.99, 0.99, note, transform=ax.transAxes, ha="right", va="top", fontsize=8.2)
 
 # ---------------- vertical row labels
 for r, lab in enumerate(["Hardware", "Simulation", "Measured"]):
     bb = gs[r, 0].get_position(fig)
     fig.patches.append(Rectangle((0.001, bb.y0), 0.017, bb.height, transform=fig.transFigure, fc="#e6e6e6", ec="none"))
-    fig.text(0.0095, bb.y0 + bb.height / 2, lab, rotation=90, ha="center", va="center", fontsize=8)
+    fig.text(0.0095, bb.y0 + bb.height / 2, lab, rotation=90, ha="center", va="center", fontsize=8.8)
 
 fig.savefig("figs/fig_cases.pdf", dpi=300)
 fig.savefig("figs/fig_cases.png", dpi=250)

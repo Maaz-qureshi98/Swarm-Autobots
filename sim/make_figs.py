@@ -67,7 +67,7 @@ for r in d:
         succ=float(np.mean(arr(r["success"]))))
 
 # ------------------------------------------------------------------ E2 safety
-# collision studies use the 0.14 m circumscribed footprint (E13); the 0.12 m runs are kept as e2r012_*
+# collision studies use the 0.142 m circumscribed footprint (E13); the 0.12 m runs are kept as e2r012_*
 for r in load("e2_safety") + [r for r in E7 if r["exp"] == "e2"]:
     stats[f"e2r012_{r['form']}_{r['n_unknown']}_{r['method']}"] = dict(
         coll=float(np.mean(arr(r["collisions"]))), free=float(np.mean(arr(r["collisions"]) == 0)),
@@ -80,6 +80,9 @@ for r in d:
         minsep=float(np.nanmedian(arr(r["min_sep"]))), succ=float(np.mean(arr(r["success"]))),
         reach=float(np.mean(arr(r["reached"]))), est_med=float(np.median(arr(r["rmse_est"]))),
         interv=float(np.mean(arr(r["interv"]))))
+_rc5 = plt.rcParams.copy()   # larger text for the safety figure
+plt.rcParams.update({"font.size": 7.7, "axes.labelsize": 7.7, "legend.fontsize": 7.2,
+                     "xtick.labelsize": 7.2, "ytick.labelsize": 7.2})
 fig, axs = plt.subplots(2, 1, figsize=(COL, 2.35), sharex=True)
 ms = ["asa", "pred_nocbf", "pred_stop", "pred_nobyp", "lpsi_pred"]
 w = 0.155
@@ -92,15 +95,15 @@ for k, m in enumerate(ms):
     axs[1].bar(xs, ys, w * 0.92, color=C[m], lw=0)
     for x, v in zip(xs, yc):          # label empty or near-empty bars so they are not read as missing data
         if v < 3:
-            axs[0].text(x, v + 2, f"{v:.0f}", ha="center", va="bottom", fontsize=4.8, color=C[m])
+            axs[0].text(x, v + 2, f"{v:.0f}", ha="center", va="bottom", fontsize=6.2, color=C[m])
     for x, v in zip(xs, ys):
         if v < 3:
-            axs[1].text(x, v + 2, f"{v:.0f}", ha="center", va="bottom", fontsize=4.8, color=C[m])
+            axs[1].text(x, v + 2, f"{v:.0f}", ha="center", va="bottom", fontsize=6.2, color=C[m])
 for ax in axs:
     ax.set_xticks(range(4)); ax.grid(axis="y", alpha=0.3, lw=0.4); ax.set_axisbelow(True)
     ax.tick_params(axis="x", length=0)
 axs[1].set_xlabel("Unmapped obstacles near the path")
-axs[0].set_ylabel("Contact [%]"); axs[0].set_ylim(0, 100)
+axs[0].set_ylabel("Missions with\ncontact [%]"); axs[0].set_ylim(0, 100)
 axs[1].set_ylabel("Pattern held [%]"); axs[1].set_ylim(0, 100)
 axs[0].text(0.01, 0.97, "(a)", transform=axs[0].transAxes, va="top", fontweight="bold")
 axs[1].text(0.01, 0.97, "(b)", transform=axs[1].transAxes, va="top", fontweight="bold")
@@ -108,7 +111,9 @@ h, l = axs[0].get_legend_handles_labels()
 fig.subplots_adjust(hspace=0.12, top=0.84)
 fig.legend(h, l, loc="lower center", ncol=3, bbox_to_anchor=(0.54, 0.845), frameon=False, handlelength=1.0,
            columnspacing=0.9, handletextpad=0.4)
+fig.align_ylabels(axs)
 fig.savefig(F + "fig_safety.pdf"); plt.close(fig)
+plt.rcParams.update(_rc5)
 
 # ------------------------------------------------------------------ E3 election
 d = load("e3_election")
@@ -167,8 +172,8 @@ E4D = d
 # ------------------------------------------------------------------ Fig: packet loss + scalability (one row)
 from matplotlib.lines import Line2D
 _rc = plt.rcParams.copy()   # larger text for this figure* (read at full page width)
-plt.rcParams.update({"font.size": 8, "axes.labelsize": 8, "axes.titlesize": 8, "legend.fontsize": 8,
-                     "xtick.labelsize": 7.5, "ytick.labelsize": 7.5})
+plt.rcParams.update({"font.size": 8.8, "axes.labelsize": 8.8, "axes.titlesize": 8.8, "legend.fontsize": 8.8,
+                     "xtick.labelsize": 8.2, "ytick.labelsize": 8.2})
 fig, axs = plt.subplots(1, 4, figsize=(TW, 1.85))
 MS = ["asa", "lpsi_zoh", "consensus", "lpsi_pred"]
 for form, ls, mk in [("triangle", "-", "o"), ("Y", "--", "s")]:
