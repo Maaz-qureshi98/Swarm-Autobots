@@ -238,6 +238,11 @@ class SwarmSim:
         self.bel_leader = np.zeros((E, N), int)
         self.last_rx = np.zeros((E, N))
         self.pkt = np.zeros((E, N, 5))
+        self.pkt_prev = np.zeros((E, N, 5))
+        self.rx_prev = np.full((E, N), -1e9)
+        self.contact_steps = np.zeros(E, int)
+        self.multi_lead_steps = np.zeros(E, int)
+        self.multi_lead_coll = np.zeros(E, int)
         self.dead_known = np.zeros((E, N, N), bool)
         self.cand_deadline = np.full((E, N), np.inf)
         self.prog = np.zeros((E, N), int)
@@ -350,6 +355,11 @@ class SwarmSim:
         self.bel_leader[e] = 0
         self.last_rx[e] = 0.0
         self.pkt[e] = np.array([*self.est[e, 0], 0.0, 0.0])
+        self.pkt_prev[e] = self.pkt[e]
+        self.rx_prev[e] = -1e9
+        self.contact_steps[e] = 0
+        self.multi_lead_steps[e] = 0
+        self.multi_lead_coll[e] = 0
         self.dead_known[e] = False
         self.cand_deadline[e] = np.inf
         self.prog[e] = 0
@@ -467,6 +477,8 @@ class SwarmSim:
             ee = np.where(upd)[0]
             if len(ee):
                 js = jstar[ee]
+                self.pkt_prev[ee, i] = self.pkt[ee, i]
+                self.rx_prev[ee, i] = self.last_rx[ee, i]
                 self.pkt[ee, i, :3] = self.est[ee, js]
                 self.form_rx[ee, i] = self.form_cmd[ee]
                 self.pkt[ee, i, 3:] = self.uact[ee, js]
@@ -551,6 +563,10 @@ class SwarmSim:
         # count new contact events (rising edge per robot)
         new_ev = hit & ~self.contact
         self.collisions += new_ev.sum(1)
+        self.contact_steps += hit.sum(1)
+        ml = (self.is_leader & self.alive).sum(1) > 1
+        self.multi_lead_steps += ml & ~self.done
+        self.multi_lead_coll += np.where(ml, new_ev.sum(1), 0)
         self.contact = hit
         moved = ~hit
         self.pos = np.where(moved[..., None], newpos, self.pos)
@@ -611,6 +627,47 @@ def predict_leader(pkt, tau):
     xn = np.where(small, x + v * tau * np.cos(th), x + v / ws * (np.sin(th + w * tau) - np.sin(th)))
     yn = np.where(small, y + v * tau * np.sin(th), y - v / ws * (np.cos(th + w * tau) - np.cos(th)))
     return np.stack([xn, yn, wrap(th + w * tau)], -1), v, w
+
+
+def predict_leader_cv(pkt, tau):
+    """Constant-velocity straight-line extrapolation (ignores the turn rate)."""
+    x, y, th, v, w = [pkt[..., k] for k in range(5)]
+    return np.stack([x + v * tau * np.cos(th), y + v * tau * np.sin(th), th], -1), v, np.zeros_like(w)
+
+
+def predict_leader_ca(pkt, prev, tau, gap, n_sub=5):
+    """Constant-acceleration predictor: twist rates from the last two packets
+    (finite difference over their reception gap), integrated along the arc."""
+    x, y, th, v, w = [pkt[..., k].copy() for k in range(5)]
+    ok = (gap > 1e-3) & (gap < 0.5)
+    g = np.where(ok, gap, 1.0)
+    a = np.where(ok, np.clip((v - prev[..., 3]) / g, -1.0, 1.0), 0.0)
+    al = np.where(ok, np.clip((w - prev[..., 4]) / g, -4.0, 4.0), 0.0)
+    h = tau / n_sub
+    for _ in range(n_sub):
+        thm = th + 0.5 * h * (w + 0.5 * h * al)
+        vm = v + 0.5 * h * a
+        x = x + h * vm * np.cos(thm)
+        y = y + h * vm * np.sin(thm)
+        th = th + h * (w + 0.5 * h * al)
+        v = v + h * a
+        w = w + h * al
+    return np.stack([x, y, wrap(th)], -1), v, w
+
+
+def apf_correction(cmd, ranges, cfg=None, k=0.03, r0=0.35):
+    """Range-based artificial potential field: each reading closer than r0 pushes the
+    look-ahead point away from its ray with gain k (1/r - 1/r0)."""
+    c = cfg or Cfg
+    bet = np.array([0.0, c.ray_ang[3], c.ray_ang[4]])
+    r = np.maximum(ranges, 0.02)
+    g = np.where(r < r0, k * (1.0 / r - 1.0 / r0), 0.0)
+    fx = -(g * np.cos(bet)).sum(-1)
+    fy = -(g * np.sin(bet)).sum(-1)
+    out = cmd.copy()
+    out[..., 0] = np.clip(cmd[..., 0] + fx, c.v_min, c.v_max)
+    out[..., 1] = np.clip(cmd[..., 1] + fy / c.d_ctrl, -c.w_max, c.w_max)
+    return out
 
 
 def lpsi_control(est, Lpose, vL, wL, off, cfg=Cfg, feedforward=True):
@@ -675,6 +732,11 @@ METHODS = {
     # (Ren 2007; Olfati-Saber et al. 2007), all-to-all broadcast, held neighbour states,
     # same planner, pacing, and safety layer as the proposed method
     "consensus":  dict(base="cons", pred=False, cbf=True),
+    # stronger predictor baselines (same filter and recovery as the proposed method)
+    "lpsi_cv":    dict(base="lpsi", pred="cv", cbf=True),
+    "lpsi_ca":    dict(base="lpsi", pred="ca", cbf=True),
+    # reactive safety baseline: potential field on the same three ranges, no filter/recovery
+    "pred_apf":   dict(base="lpsi", pred=True, cbf=False, apf=True),
 }
 
 
@@ -722,7 +784,11 @@ def control_step(sim, method):
     off = sim.slot_offsets()
     age = sim.t[:, None] - sim.last_rx
     tau = np.minimum(age, c.tau_stop)
-    if m["pred"]:
+    if m["pred"] == "cv":
+        Lhat, vL, wL = predict_leader_cv(sim.pkt, tau)
+    elif m["pred"] == "ca":
+        Lhat, vL, wL = predict_leader_ca(sim.pkt, sim.pkt_prev, tau, sim.last_rx - sim.rx_prev)
+    elif m["pred"]:
         Lhat, vL, wL = predict_leader(sim.pkt, tau)
     else:
         Lhat, vL, wL = sim.pkt[..., :3], sim.pkt[..., 3], sim.pkt[..., 4]
@@ -746,6 +812,9 @@ def control_step(sim, method):
     else:
         filt = cmd.copy()
         interv = np.zeros((E, N), bool)
+        if m.get("apf"):
+            filt = apf_correction(filt, ranges, c)
+            filt[stale] = 0.0
         if method == "asa" or m.get("stop"):
             # original firmware rule: stop when front ultrasonic < 20 cm
             filt[..., 0] = np.where(ranges[..., 0] < 0.20, 0.0, filt[..., 0])
@@ -758,6 +827,8 @@ def control_step(sim, method):
                 lead_done[e] |= dn
                 filt[e, i] = (v, w)
                 cmd[e, i] = (v, w)
+                if m.get("apf"):
+                    filt[e, i] = apf_correction(filt[e, i][None], ranges[e, i][None], c)[0]
     if m["cbf"] or method == "asa":
         lf, li = cbf_filter(filt, ranges, c)
         L = sim.is_leader & sim.alive

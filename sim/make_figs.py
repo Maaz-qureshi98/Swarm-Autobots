@@ -104,7 +104,7 @@ for ax in axs:
     ax.tick_params(axis="x", length=0)
 axs[1].set_xlabel("Unmapped obstacles near the path")
 axs[0].set_ylabel("Missions with\ncontact [%]"); axs[0].set_ylim(0, 100)
-axs[1].set_ylabel("Pattern held [%]"); axs[1].set_ylim(0, 100)
+axs[1].set_ylabel("GT slot RMSE [m]"); axs[1].set_ylim(0, 0.11)
 axs[0].text(0.01, 0.97, "(a)", transform=axs[0].transAxes, va="top", fontweight="bold")
 axs[1].text(0.01, 0.97, "(b)", transform=axs[1].transAxes, va="top", fontweight="bold")
 h, l = axs[0].get_legend_handles_labels()
@@ -176,38 +176,78 @@ plt.rcParams.update({"font.size": 8.8, "axes.labelsize": 8.8, "axes.titlesize": 
                      "xtick.labelsize": 8.8, "ytick.labelsize": 8.8})
 fig, axs = plt.subplots(1, 4, figsize=(TW, 1.85))
 MS = ["asa", "lpsi_zoh", "consensus", "lpsi_pred"]
+CALC = load("e15_calcurve")   # loss sweep under the hardware-consistent model (sim/e15_revision2.py)
+LOC = {}
+for _lev in ["ideal", "0.0", "0.25", "0.5", "1.0", "2.0", "4.0"]:
+    LOC.update(load(f"e15_locsweep_{_lev}"))
+EFF = load("effects")
+LEVS = ["ideal", "0.0", "0.25", "0.5", "1.0", "2.0", "4.0"]
+LEVL = ["ideal", "0", ".25", ".5", "1", "2", "4"]
 for form, ls, mk in [("triangle", "-", "o"), ("Y", "--", "s")]:
     for m in MS:
         rows = [r for r in E1D if r["form"] == form and r["method"] == m]
         ps = 100 * np.array([r["p"] for r in rows])
         axs[0].plot(ps, [np.median(arr(r["rmse_gt"])) for r in rows], ls, color=C[m], marker=mk, ms=2.2, lw=0.9)
-        axs[1].plot(ps, [100 * np.mean(arr(r["success"])) for r in rows], ls, color=C[m], marker=mk, ms=2.2, lw=0.9)
+        if m != "asa":                     # (b) hardware-consistent model: ASA replay (0.19-0.47 m) is off scale
+            pc = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+            axs[1].plot(100 * np.array(pc), [CALC[f"{form}|{p}|{m}"]["gt"][0] for p in pc], ls, color=C[m],
+                        marker=mk, ms=2.2, lw=0.9)
+            if form == "triangle" and m == "lpsi_pred":
+                axs[1].fill_between(100 * np.array(pc), [CALC[f"{form}|{p}|{m}"]["gt"][1] for p in pc],
+                                    [CALC[f"{form}|{p}|{m}"]["gt"][2] for p in pc], color=C[m], alpha=0.13, lw=0)
         if form == "triangle" and m == "lpsi_pred":
             axs[0].fill_between(ps, [np.percentile(arr(r["rmse_gt"]), 25) for r in rows],
                                 [np.percentile(arr(r["rmse_gt"]), 75) for r in rows], color=C[m], alpha=0.13, lw=0)
-    for m in ["asa", "consensus", "lpsi_pred"]:
-        rows = [r for r in E4D if r["form"] == form and r["method"] == m]
-        Ns = [r["N"] for r in rows]
-        axs[2].plot(Ns, [np.median(arr(r["rmse_gt"])) for r in rows], ls, color=C[m], marker=mk, ms=2.2, lw=0.9)
-        axs[3].plot(Ns, [100 * np.mean(arr(r["reached"])) for r in rows], ls, color=C[m], marker=mk, ms=2.2, lw=0.9)
+    # (c) ground truth vs localization quality: ZOH and prediction at 60% loss, prediction with a perfect link
+    xs = np.arange(len(LEVS))
+    for m, p, col, lsx in [("lpsi_zoh", 0.6, C["lpsi_zoh"], ls), ("lpsi_pred", 0.6, C["lpsi_pred"], ls),
+                           ("lpsi_pred", 0.0, "0.45", ls)]:
+        axs[2].plot(xs, [np.median(LOC[f"{lev}|{form}|{p}|{m}"]["gt_all"]) for lev in LEVS], lsx, color=col,
+                    marker=mk, ms=2.2, lw=0.9)
+    # (d) prediction gain at 60% loss with paired bootstrap 95% CI
+    g = np.array([EFF[f"loc|{lev}|{form}|0.6|gt_all"] for lev in LEVS]) * 100
+    off = -0.08 if form == "triangle" else 0.08
+    axs[3].errorbar(xs + off, g[:, 0], yerr=[g[:, 0] - g[:, 1], g[:, 2] - g[:, 0]], fmt=mk, ls=ls,
+                    color=C["lpsi_pred"], ms=2.4, lw=0.9, capsize=1.5, elinewidth=0.6)
 for ax in axs[:2]:
     ax.set_xlabel("Mean packet loss [%]"); ax.set_xticks([0, 20, 40, 60])
 for ax in axs[2:]:
-    ax.set_xlabel("Swarm size $N$"); ax.set_xticks([4, 8, 12, 16, 20])
+    ax.set_xticks(range(len(LEVS))); ax.set_xticklabels(LEVL)
+    ax.set_xlabel("Compass bias std [deg]")
 axs[0].set_ylabel("GT slot RMSE [m]"); axs[0].set_ylim(0.1, 0.5)
-axs[1].set_ylabel("Pattern held [%]"); axs[1].set_ylim(0, 100)
-axs[2].set_ylabel("GT slot RMSE [m]"); axs[2].set_ylim(0.1, 0.5)
-axs[3].set_ylabel("Completed [%]"); axs[3].set_ylim(0, 105)
+axs[1].set_ylabel("GT slot RMSE [m]"); axs[1].set_ylim(0, 0.11)
+axs[2].set_ylabel("GT slot RMSE [m]"); axs[2].set_yscale("log"); axs[2].set_ylim(0.008, 0.6)
+axs[3].set_ylabel("GT gain of prediction [%]"); axs[3].set_ylim(-3, 58)
+axs[2].text(0.97, 0.04, "60% loss: ZOH, pred.\ngrey: pred., no loss", transform=axs[2].transAxes, va="bottom",
+            ha="right", fontsize=6.6)
+axs[3].text(0.97, 0.97, "60% loss", transform=axs[3].transAxes, va="top", ha="right", fontsize=6.6)
 for k, ax in enumerate(axs):
     ax.grid(alpha=0.3, lw=0.4); ax.set_axisbelow(True)
-    ax.set_title(["(a) Slot error vs. loss", "(b) Pattern held vs. loss", "(c) Slot error vs. size",
-                  "(d) Completion vs. size"][k])
+    ax.set_title(["(a) Nominal model", "(b) Hardware-consistent", "(c) Error vs. localization",
+                  "(d) Gain vs. localization"][k])
 hm = [Line2D([], [], color=C[m], lw=1.4, label=LBL[m]) for m in MS]
 hf = [Line2D([], [], color="0.3", ls="-", marker="o", ms=2.2, lw=0.9, label="triangle"),
       Line2D([], [], color="0.3", ls="--", marker="s", ms=2.2, lw=0.9, label="Y")]
 fig.legend(handles=hm + hf, loc="lower center", ncol=6, bbox_to_anchor=(0.5, 0.99), frameon=False)
 fig.subplots_adjust(wspace=0.42, left=0.06, right=0.995)
 fig.savefig(F + "fig_loss.pdf"); plt.close(fig)
+# scalability (supplementary Fig. S3)
+fig, axs = plt.subplots(1, 2, figsize=(TW * 0.62, 1.85))
+for form, ls, mk in [("triangle", "-", "o"), ("Y", "--", "s")]:
+    for m in ["asa", "consensus", "lpsi_pred"]:
+        rows = [r for r in E4D if r["form"] == form and r["method"] == m]
+        Ns = [r["N"] for r in rows]
+        axs[0].plot(Ns, [np.median(arr(r["rmse_gt"])) for r in rows], ls, color=C[m], marker=mk, ms=2.2, lw=0.9)
+        axs[1].plot(Ns, [100 * np.mean(arr(r["reached"])) for r in rows], ls, color=C[m], marker=mk, ms=2.2, lw=0.9)
+for ax in axs:
+    ax.set_xlabel("Swarm size $N$"); ax.set_xticks([4, 8, 12, 16, 20]); ax.grid(alpha=0.3, lw=0.4)
+axs[0].set_ylabel("GT slot RMSE [m]"); axs[0].set_ylim(0.1, 0.5)
+axs[1].set_ylabel("Completed [%]"); axs[1].set_ylim(0, 105)
+axs[0].set_title("(a) Slot error vs. size"); axs[1].set_title("(b) Completion vs. size")
+hm = [Line2D([], [], color=C[m], lw=1.4, label=LBL[m]) for m in ["asa", "consensus", "lpsi_pred"]]
+fig.legend(handles=hm + hf, loc="lower center", ncol=5, bbox_to_anchor=(0.5, 0.99), frameon=False)
+fig.subplots_adjust(wspace=0.4)
+fig.savefig(F + "fig_scale.pdf"); plt.close(fig)
 plt.rcParams.update(_rc)
 
 # ------------------------------------------------------------------ E5 drift + trajectories

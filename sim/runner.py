@@ -70,7 +70,7 @@ def run(method, E=50, N=4, seed=0, record=False, settle=3.0, switch_time=None, *
             ok = sw_done & np.isnan(sw_lat) & np.where(folm, (sim.form_rx == sim.form_cmd[:, None]) & (sim.my_err < 0.10), True).all(1)
             sw_lat[ok] = sim.t[ok] - sw_t
         if record:
-            rec.append(dict(t=sim.t.copy(), pos=sim.pos.copy(), th=sim.th.copy(), est=sim.est.copy(),
+            rec.append(dict(t=sim.t.copy(), pos=sim.pos.copy(), th=sim.th.copy(), est=sim.est.copy(), e_est=e_est.copy(),
                             uact=sim.uact.copy(), done=sim.done.copy(),
                             e_gt=e_gt.copy(), fol=fol.copy(), leader=sim.bel_leader.copy(),
                             is_leader=sim.is_leader.copy(), alive=sim.alive.copy(),
@@ -96,12 +96,15 @@ def run(method, E=50, N=4, seed=0, record=False, settle=3.0, switch_time=None, *
         recover_t=recover_t,
         fa_ok=sim.fa_ok.astype(float),
         switch_lat=sw_lat,
+        contact_time=sim.contact_steps * c.dt,
+        multi_lead_time=sim.multi_lead_steps * c.dt,
+        multi_lead_coll=sim.multi_lead_coll.astype(float),
     )
     return out, sim, rec
 
 
 if __name__ == "__main__":
-    for m in ["asa", "lpsi_zoh", "lpsi_pred", "lpsi_apf", "pred_nocbf"]:
+    for m in ["asa", "lpsi_zoh", "lpsi_pred", "lpsi_cv", "lpsi_ca", "pred_apf", "pred_nocbf"]:
         t0 = time.time()
         o, sim, _ = run(m, E=40, N=4, form="triangle", p_loss=0.2, seed=1)
         print(f"{m:11s} rmse_gt {o['rmse_gt'].mean():.3f} est {o['rmse_est'].mean():.3f} "
