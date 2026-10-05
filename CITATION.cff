@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "Swarm Autobots: Pattern Formation Control for Robot Teams"
+authors:
+  - family-names: Qureshi
+    given-names: Maaz
+  - family-names: Aslam
+    given-names: Saleem
+repository-code: "https://github.com/Maaz-qureshi98/Swarm-Autobots"
+license: MIT
+date-released: 2026-10-03

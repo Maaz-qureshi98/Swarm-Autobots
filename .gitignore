@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.DS_Store
+# LaTeX build files
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+# ROS 2 build
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+# intermediate figure files
+sim/figs/fig_teaser.png
+sim/figs/fig_teaser_preview.png
+sim/figs/fig_robot_preview.png
+firmware/test/trace.txt
+firmware/test/test_equivalence
+paper/
+# PDFs (paper figures, printouts) stay local
+*.pdf

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-and-firmware:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt opencv-python-headless
+      - name: Agent and ROS-graph tests (no ROS needed)
+        run: make test
+      - name: Statistics reproduce the stored results
+        run: cd sim && python stats_tests.py
+      - name: C++ agent matches the Python agent
+        run: |
+          python3 firmware/test/make_trace.py
+          cd firmware/test
+          g++ -O2 -std=c++17 -Wall -Wextra -Werror -I../swarm_agent test_equivalence.cpp -o test_equivalence
+          ./test_equivalence trace.txt
+      - name: Ground-truth tracker self-test
+        run: python3 tools/test_aruco_synthetic.py
+
+  ros2-jazzy:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3-numpy python3-serial ros-jazzy-nav-msgs ros-jazzy-geometry-msgs ros-jazzy-launch-ros
+      - name: colcon build
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          cd ros2_ws && colcon build --event-handlers console_direct+
+      - name: Launch the simulated swarm and check traffic
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source ros2_ws/install/setup.bash
+          (timeout 40 ros2 launch swarm_autobots swarm_sim.launch.py num_robots:=4 formation:=Y loss:=0.2 > launch.log 2>&1 &)
+          sleep 15
+          ros2 topic list | tee topics.txt
+          grep -q /espnow/tx/leader_state topics.txt
+          timeout 10 ros2 topic echo --once /espnow/tx/leader_state
+          timeout 10 ros2 topic echo --once /robot_1/cmd_vel
+          sleep 1; cat launch.log | tail -20
