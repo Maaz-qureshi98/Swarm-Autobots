@@ -172,8 +172,8 @@ E4D = d
 # ------------------------------------------------------------------ Fig: packet loss + scalability (one row)
 from matplotlib.lines import Line2D
 _rc = plt.rcParams.copy()   # larger text for this figure* (read at full page width)
-plt.rcParams.update({"font.size": 8.8, "axes.labelsize": 8.8, "axes.titlesize": 8.8, "legend.fontsize": 8.8,
-                     "xtick.labelsize": 8.2, "ytick.labelsize": 8.2})
+plt.rcParams.update({"font.size": 8.8, "axes.labelsize": 8.8, "axes.titlesize": 8.8, "legend.fontsize": 9.4,
+                     "xtick.labelsize": 8.8, "ytick.labelsize": 8.8})
 fig, axs = plt.subplots(1, 4, figsize=(TW, 1.85))
 MS = ["asa", "lpsi_zoh", "consensus", "lpsi_pred"]
 for form, ls, mk in [("triangle", "-", "o"), ("Y", "--", "s")]:
