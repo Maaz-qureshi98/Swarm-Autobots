@@ -23,7 +23,6 @@ ROB = ["#1b1b1b", "#2F6690", "#E39B2D", "#6A994E"]
 RED = "#B23A48"; GREY = "#4d4d4d"
 D = "figs_hw/"
 LBOX = dict(boxstyle="square,pad=0.15", fc="white", ec="none")
-HALO = [pe.withStroke(linewidth=1.5, foreground="white")]
 
 
 def load(f, crop):
@@ -36,9 +35,8 @@ def load(f, crop):
 def label(ax, P, x, y, txt, dx, dy, col="black"):
     px, py = P(x, y); tx, ty = P(x + dx, y + dy)
     ax.annotate(txt, (px, py), (tx, ty), ha="center", va="center", fontsize=8.8, color="black",
-                path_effects=HALO, arrowprops=dict(arrowstyle="-", lw=0.6, color="black", shrinkA=3, shrinkB=0,
-                                                    path_effects=[pe.withStroke(linewidth=1.4, foreground="white")]), zorder=5)
-    ax.plot(px, py, "o", ms=2.2, mfc="black", mec="white", mew=0.4, zorder=6)
+                arrowprops=dict(arrowstyle="-", lw=0.6, color="black", shrinkA=3, shrinkB=0), zorder=5)
+    ax.plot(px, py, "o", ms=2.2, color="black", zorder=6)
 
 
 def dim(ax, P, a, b, txt, o=(0, 0)):
@@ -46,7 +44,7 @@ def dim(ax, P, a, b, txt, o=(0, 0)):
     ax.annotate("", pa, pb, arrowprops=dict(arrowstyle="<|-|>,head_length=0.25,head_width=0.12", lw=0.6,
                                             color="black", shrinkA=0, shrinkB=0), zorder=4)
     m = ((pa[0] + pb[0]) / 2 + o[0], (pa[1] + pb[1]) / 2 + o[1])
-    ax.text(*m, txt, fontsize=8.8, color="black", ha="center", va="center", path_effects=HALO, zorder=6)
+    ax.text(*m, txt, fontsize=8.8, color="black", ha="center", va="center", zorder=6)
 
 
 def frame(ax):
@@ -64,30 +62,30 @@ titles = ["(a) Case 1: teleoperated triangle", "(b) Case 2: static Y", "(c) Case
 # ---------------- row 1: hardware frames
 H = []
 ax = fig.add_subplot(gs[0, 0]); im, P = load("hw_case1_v2.jpg", (30, 60, 960, 645)); ax.imshow(im)
-label(ax, P, 820, 150, "Alpha (on table)", -215, -55, ROB[0])
+label(ax, P, 820, 150, "Alpha (on table)", -400, -40, ROB[0])
 label(ax, P, 140, 280, "Beta", 0, -80, GREY); label(ax, P, 460, 265, "Beta", 40, -80, GREY)
 label(ax, P, 250, 520, "Beta", -135, 35, GREY)
-dim(ax, P, (205, 300), (395, 285), "30 cm", (0, -45)); dim(ax, P, (165, 350), (280, 500), "30 cm", (-80, 0))
-dim(ax, P, (440, 340), (340, 490), "30 cm", (80, 0))
+dim(ax, P, (205, 300), (395, 285), "30 cm", (0, -45)); dim(ax, P, (165, 350), (280, 500), "30 cm", (-150, 25))
+dim(ax, P, (440, 340), (340, 490), "30 cm", (150, 25))
 H.append(ax)
 ax = fig.add_subplot(gs[0, 1]); im, P = load("hw_case2_v2.jpg", (20, 40, 960, 645)); ax.imshow(im)
 label(ax, P, 390, 145, "Alpha", -120, -40, ROB[0]); label(ax, P, 450, 300, "Beta-1", 200, -20, ROB[1])
 label(ax, P, 160, 520, "Beta", 140, 85, GREY); label(ax, P, 790, 500, "Beta", 80, -120, GREY)
-dim(ax, P, (395, 190), (420, 240), "30 cm", (-85, 0)); dim(ax, P, (360, 345), (210, 470), "60 cm", (-70, -30))
-dim(ax, P, (480, 345), (740, 450), "60 cm", (60, -45))
+dim(ax, P, (395, 190), (420, 240), "30 cm", (-190, 10)); dim(ax, P, (360, 345), (210, 470), "60 cm", (-100, -55))
+dim(ax, P, (480, 345), (740, 450), "60 cm", (30, 65))
 H.append(ax)
 ax = fig.add_subplot(gs[0, 2]); im, P = load("hw_case3_v2.jpg", (20, 40, 960, 645)); ax.imshow(im)
 label(ax, P, 320, 220, "Alpha", 60, -140, ROB[0]); label(ax, P, 660, 280, "Beta-1", -130, 165, ROB[1])
 label(ax, P, 860, 190, "Beta", 0, -120, GREY); label(ax, P, 790, 500, "Beta", -60, 110, GREY)
 label(ax, P, 140, 250, "obstacle", 10, 200, "black")
-dim(ax, P, (400, 240), (570, 270), "30 cm", (0, -50))
+dim(ax, P, (400, 240), (570, 270), "30 cm", (10, -90))
 H.append(ax)
 ax = fig.add_subplot(gs[0, 3]); im, P = load("hw_case4_v2.jpg", (110, 10, 1000, 566)); ax.imshow(im)
 label(ax, P, 500, 255, "Alpha", -40, -150, ROB[0])
 label(ax, P, 565, 135, "Beta", 90, -85, GREY); label(ax, P, 660, 215, "Beta", 20, 110, GREY)
 label(ax, P, 865, 215, "Beta", 0, 110, GREY)
 label(ax, P, 255, 400, "flame", -60, 100, "black")
-dim(ax, P, (440, 300), (300, 395), "0–80 cm", (-75, -45))
+dim(ax, P, (440, 300), (300, 395), "0–80 cm", (-155, -80))
 H.append(ax)
 for a, t in zip(H, titles):
     frame(a); a.set_title(t)
