@@ -4,11 +4,13 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def nodes(context):
     N = int(LaunchConfiguration("num_robots").perform(context))
-    form = LaunchConfiguration("formation").perform(context)
+    # passed through a YAML params file, where a bare Y would load as the boolean true
+    form = ParameterValue(LaunchConfiguration("formation").perform(context), value_type=str)
     loss = float(LaunchConfiguration("loss").perform(context))
     out = [Node(package="swarm_autobots", executable="sim_world", parameters=[{"num_robots": N, "formation": form}]),
            Node(package="swarm_autobots", executable="espnow_channel", parameters=[{"num_robots": N, "loss": loss}])]
