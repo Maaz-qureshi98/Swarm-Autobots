@@ -46,10 +46,16 @@ jobs:
         run: |
           source /opt/ros/jazzy/setup.bash
           source ros2_ws/install/setup.bash
-          (timeout 40 ros2 launch swarm_autobots swarm_sim.launch.py num_robots:=4 formation:=Y loss:=0.2 > launch.log 2>&1 &)
-          sleep 15
-          ros2 topic list | tee topics.txt
-          grep -q /espnow/tx/leader_state topics.txt
-          timeout 10 ros2 topic echo --once /espnow/tx/leader_state
-          timeout 10 ros2 topic echo --once /robot_1/cmd_vel
-          sleep 1; cat launch.log | tail -20
+          ros2 launch swarm_autobots swarm_sim.launch.py num_robots:=4 formation:=Y loss:=0.2 > launch.log 2>&1 &
+          LAUNCH_PID=$!
+          ok=0
+          for i in $(seq 1 30); do   # wait for discovery instead of a fixed sleep (no daemon cache)
+            if ros2 topic list --no-daemon | grep -q /espnow/tx/leader_state; then ok=1; break; fi
+            sleep 1
+          done
+          ros2 topic list --no-daemon | tee topics.txt
+          echo "---- launch.log"; tail -40 launch.log
+          test "$ok" = 1
+          timeout 15 ros2 topic echo --once /espnow/tx/leader_state
+          timeout 15 ros2 topic echo --once /robot_1/cmd_vel
+          kill $LAUNCH_PID || true
