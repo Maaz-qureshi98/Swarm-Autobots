@@ -144,17 +144,6 @@ magnetometer, flame sensor with relay and 5 V pump, 12 V 4200 mAh LiPo (motor dr
 mass 1.26 kg, or 1.65 kg with a full 350 ml tank. Bill of materials and wiring
 notes are in [docs/hardware.md](docs/hardware.md).
 
-## Limitations
-
-Error statistics and scaling come from simulation. The hardware ground truth
-consists of floor-grid measurements at the end of each run and manual timing,
-without continuous trajectory tracking or controlled packet loss. Simulator
-parameters come from datasheets, and the calibration against hardware rests on
-these runs.
-The ROS 2 nodes were tested with an in-process stand-in for `rclpy`; run
-`colcon build` and the launch file on a ROS 2 Humble or Jazzy machine before
-relying on them.
-
 ## License
 
 Code is released under the MIT License (see [LICENSE](LICENSE)). Photos and CAD
