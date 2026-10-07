@@ -2,9 +2,6 @@
 
 **Pattern Formation Control for Robot Teams**
 
-Maaz Qureshi, Saleem Aslam
-University of Waterloo (Mechanical and Mechatronics Engineering) · Bahria University (Electrical Engineering)
-
 ![Swarm Autobots](media/teaser.png)
 
 Four tracked robots, each with a single ESP32, encoders, a magnetometer, one
