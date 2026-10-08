@@ -56,6 +56,7 @@ jobs:
           ros2 topic list --no-daemon | tee topics.txt
           echo "---- launch.log"; tail -40 launch.log
           test "$ok" = 1
-          timeout 15 ros2 topic echo --once /espnow/tx/leader_state
-          timeout 15 ros2 topic echo --once /robot_1/cmd_vel
+          # pass the types explicitly so echo does not race type discovery
+          timeout 15 ros2 topic echo --once --qos-reliability best_effort /espnow/tx/leader_state swarm_autobots_msgs/msg/LeaderState
+          timeout 15 ros2 topic echo --once /robot_1/cmd_vel geometry_msgs/msg/Twist
           kill $LAUNCH_PID || true

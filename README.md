@@ -95,7 +95,7 @@ ros2_ws/src/         ROS 2 packages (middleware layer)
 firmware/            C++ swarm agent for the ESP32, equivalence test, ESP-NOW loss test
 tools/               overhead-camera ground truth (ArUco) and hardware metrics
 docs/                architecture, reproduction guide, hardware, ROS 2 notes
-media/               teaser and CAD renders
+media/               demo GIFs, teaser and CAD renders
 ```
 
 ## Quick start
