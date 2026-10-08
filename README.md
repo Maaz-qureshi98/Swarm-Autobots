@@ -3,6 +3,8 @@
 
 **Pattern Formation Control for Robot Teams**
 
+[![Swarm Autobots demo](media/demo.gif)](https://youtu.be/-lVYkj_FrYI)
+
 ![Swarm Autobots](media/teaser.png)
 
 Four tracked robots, each with a single ESP32, encoders, a magnetometer, one
