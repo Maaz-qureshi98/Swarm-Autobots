@@ -5,7 +5,7 @@
 
 [![Swarm Autobots demo](media/demo.gif)](https://youtu.be/-lVYkj_FrYI)
 
-![Swarm Autobots](media/teaser.png)
+[![Swarm Autobots demo 2](media/demo2.gif)](https://youtu.be/-lVYkj_FrYI)
 
 Four tracked robots, each with a single ESP32, encoders, a magnetometer, one
 ultrasonic and two infrared rangers, hold triangle and Y formations while
