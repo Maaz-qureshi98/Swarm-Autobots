@@ -1,12 +1,34 @@
+<div align="center">
+
 # Swarm Autobots
-## Video: https://youtu.be/-lVYkj_FrYI
 
 **Pattern Formation Control for Robot Teams**
 
-<p align="center">
-  <a href="https://youtu.be/-lVYkj_FrYI"><img src="media/demo.gif" width="49%" alt="Swarm Autobots demo"></a>
-  <a href="https://youtu.be/-lVYkj_FrYI"><img src="media/demo2.gif" width="49%" alt="Swarm Autobots demo 2"></a>
-</p>
+*Decentralized formation control for low-cost robot teams over lossy ESP-NOW, from simulation to ESP32 hardware*
+
+[![Publication](https://img.shields.io/badge/Publication-Under%20Preparation-lightgrey.svg)](#publication)
+[![Video](https://img.shields.io/badge/YouTube-Demo%20Video-FF0000.svg?logo=youtube)](https://youtu.be/-lVYkj_FrYI)
+[![CI](https://github.com/Maaz-qureshi98/Swarm-Autobots/actions/workflows/ci.yml/badge.svg)](https://github.com/Maaz-qureshi98/Swarm-Autobots/actions/workflows/ci.yml)
+[![ROS 2 Jazzy](https://img.shields.io/badge/ROS%202-Jazzy-22314E.svg?logo=ros)](https://docs.ros.org/en/jazzy/)
+[![ESP32](https://img.shields.io/badge/ESP32-ESP--NOW-E7352C.svg?logo=espressif&logoColor=white)](firmware)
+[![Python 3](https://img.shields.io/badge/Python-3-3776AB.svg?logo=python&logoColor=white)](requirements.txt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+### **[▶ Watch the demo video on YouTube](https://youtu.be/-lVYkj_FrYI)**
+
+<a href="https://youtu.be/-lVYkj_FrYI"><img src="media/demo.gif" width="49%" alt="Swarm Autobots hardware demo (click to watch on YouTube)"></a>
+<a href="https://youtu.be/-lVYkj_FrYI"><img src="media/demo2.gif" width="49%" alt="Swarm Autobots demo 2 (click to watch on YouTube)"></a>
+
+<sub>Click a GIF to watch the full video on YouTube.</sub>
+
+</div>
+
+> [!NOTE]
+> **Publication under preparation.** Paper and citation details will be added here once the work is published.
+
+---
+
+## Overview
 
 Four tracked robots, each with a single ESP32, encoders, a magnetometer, one
 ultrasonic and two infrared rangers, hold triangle and Y formations while
@@ -144,6 +166,17 @@ driver, 38-pin ESP32, HC-SR04 ultrasonic, two Sharp 2Y0A21 IR rangers, GY-271
 magnetometer, flame sensor with relay and 5 V pump, 12 V 4200 mAh LiPo (motor driver fed directly, 5 V logic from two LM2596 buck converters in parallel). Robot
 mass 1.26 kg, or 1.65 kg with a full 350 ml tank. Bill of materials and wiring
 notes are in [docs/hardware.md](docs/hardware.md).
+
+<table>
+  <tr>
+    <td align="center" width="30%"><img src="sim/figs_hw/robot_top.jpg" width="100%"><br><sub>Robot (top view)</sub></td>
+    <td align="center" width="70%"><img src="media/cad_swarm.png" width="100%"><br><sub>CAD model of the four-robot swarm</sub></td>
+  </tr>
+</table>
+
+## Publication
+
+The paper describing this work is **under preparation**. Citation details will be added here once it is published. Until then, if you use this code, please link to this repository.
 
 ## License
 
