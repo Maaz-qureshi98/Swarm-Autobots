@@ -4,7 +4,7 @@
 
 **Pattern Formation Control for Robot Teams**
 
-*Decentralized formation control for low-cost robot teams over lossy ESP-NOW, from simulation to ESP32 hardware*
+*Decentralized formation control for low-cost robot teams over lossy ESP-NOW, from simulation to hardware (SIM-to-REAL)*
 
 [![Publication](https://img.shields.io/badge/Publication-Under%20Preparation-lightgrey.svg)](#publication)
 [![Video](https://img.shields.io/badge/YouTube-Demo%20Video-FF0000.svg?logo=youtube)](https://youtu.be/-lVYkj_FrYI)
