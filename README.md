@@ -3,9 +3,10 @@
 
 **Pattern Formation Control for Robot Teams**
 
-[![Swarm Autobots demo](media/demo.gif)](https://youtu.be/-lVYkj_FrYI)
-
-[![Swarm Autobots demo 2](media/demo2.gif)](https://youtu.be/-lVYkj_FrYI)
+<p align="center">
+  <a href="https://youtu.be/-lVYkj_FrYI"><img src="media/demo.gif" width="49%" alt="Swarm Autobots demo"></a>
+  <a href="https://youtu.be/-lVYkj_FrYI"><img src="media/demo2.gif" width="49%" alt="Swarm Autobots demo 2"></a>
+</p>
 
 Four tracked robots, each with a single ESP32, encoders, a magnetometer, one
 ultrasonic and two infrared rangers, hold triangle and Y formations while
