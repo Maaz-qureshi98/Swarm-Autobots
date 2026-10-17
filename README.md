@@ -47,9 +47,9 @@ firmware agent, and the ROS 2 middleware packages.
 | Leader prediction | Followers propagate the last leader packet along a constant-twist arc, so slot error grows as O(τ²) in packet age instead of O(τ) | `sim/core.py: predict_leader` |
 | Look-ahead tracking | Feedback-linearized control of a point 0.1 m ahead of each follower | `sim/core.py: lpsi_control` |
 | Pacing and planning | The leader slows down when a follower reports a large error; A* inflates obstacles by the formation half-width | `sim/core.py: astar_path`, `SwarmSim` |
-| Range-based speed filter | Closed-form sampled-data bound on raw range readings: `v <= λh / (T cos β)` | `sim/core.py: cbf_filter` |
+| Range-based speed filter | Sampled-data speed restriction on raw range readings: `v <= λh / (T cos β)`. Exact for a compact reflector that stays the detected return through the step; an extended plane normal to travel needs `λh cos β / T` instead, so this form is permissive there. Not a control barrier function, despite the legacy `cbf_` name | `sim/core.py: cbf_filter` |
 | Deadlock recovery | Rotate toward the slot side, then advance, when the filter blocks a follower | `sim/core.py: control_step` |
-| Heartbeat election | Bully-style election ordered by MAC address; the leader's state frame is the heartbeat | `sim/core.py`, `ros2_ws/.../agent.py` |
+| Heartbeat election | Election ordered by a fixed per-robot rank (assigned in MAC order in simulation, a fixed id in firmware), with a 0.2 s per-rank backoff; the leader's state frame is the heartbeat | `sim/core.py`, `ros2_ws/.../agent.py` |
 | Slot persistence | After a leader change, robots keep their slots relative to the new leader's slot | same |
 | Pattern switching | Pattern ID carried in the heartbeat | same |
 
@@ -74,15 +74,20 @@ Repeated runs agreed within about ±5 cm. The flame sensor triggers up to
 
 Simulation (26,160 missions with ground truth):
 
-* The predictor cuts controller-level slot error by 41% (triangle) and 36% (Y) at 60% packet loss compared with a zero-order hold.
+* The predictor cuts **onboard estimated** slot error by 41% (triangle) and 36% (Y) at 60% packet loss compared with a zero-order hold. The **ground-truth** reduction depends on localization quality: 3-5% under the nominal datasheet error model, and 25-35% in the tested low-error settings (0.25-0.5° compass-bias spread, linear slip in [0.99, 1]). Without packet loss the ground-truth difference is under 2% and its confidence interval includes zero.
 * Under loss the swarm degrades less than a consensus baseline (Ren 2007) that sends 2.5 to 4.2 times more radio traffic: 0.170 m vs 0.191 m ground-truth RMSE at 60% loss (triangle).
-* With unmapped obstacles and a conservative 0.142 m footprint (it encloses the 20 cm square chassis), the safety layer keeps 76-93% of missions contact-free, against 0-7% without it; deadlock recovery raises success from 2% to 55%. Remaining contacts are side contacts in the blind sectors between the range rays.
+* With unmapped obstacles and a conservative 0.142 m footprint (it encloses the 20 cm square chassis), the range filter keeps 76-93% of missions contact-free against 0-7% without it, and deadlock recovery is what drives completion. Remaining contacts are side contacts in the blind sectors between the range rays.
+* Given the **same** recovery layer, a tuned potential field completes 17-31 percentage points **more** missions than the range filter (best gain k = 0.15 for one and two obstacles, k = 0.10 for three; margins +17.0 / +25.0 / +30.5 points, 95% intervals [11.5, 22.5], [17.0, 33.0], [22.0, 38.5]). The gain was selected on the same missions used to evaluate it, so those margins are conditional on that selection. An earlier sweep stopping at k = 0.06 did not bracket the optimum and understated the baseline. What dominates completion for both laws is whether a recovery layer exists at all.
+* Substituting `cos β` for its reciprocal in the range filter raises contact-free rates by 3.0 / 5.5 / 15.0 points for one / two / three obstacles, at held rates this comparison cannot separate, and roughly halves accumulated contact time. Simulation only: the ESP32 firmware still ships the reciprocal form that ran on the robots.
 * Recovery after leader loss takes 1.65 s (no loss) to 1.95 s (60% loss); pattern switches take 1.40 to 1.69 s.
 * Every open-arena mission with up to 20 robots completes.
 * Ablation: removing any component worsens at least one measured outcome; the speed filter and recovery matter most for completion.
 * Constant-twist prediction error grows as τ^1.92 against τ^1.00 for a zero-order hold, as predicted.
-* Calibration: the simulator reproduces the hardware errors with a compass-bias spread of 0.25–0.5° and
-  at most 1–2% slip, so the datasheet-based nominal model is conservative.
+* Error-model sensitivity: the nominal datasheet model produces larger median deviations than the recorded
+  floor-grid checkpoints, which motivates testing low-error settings (0.25–0.5° compass-bias spread, 1–2% slip)
+  alongside it. No single setting reproduces both the spacing and the slot checkpoints, the simulated and measured
+  statistics use different sampling protocols, and bias and slip are not separately identifiable from two sampled
+  values. This is a sensitivity analysis, not a calibrated hardware model. See `reproducibility/`.
 * Dead-reckoning drift (about 3% of distance) dominates ground-truth error. A model-mismatch study shows the
   conclusions hold under wider slip, double motor lag and triple sensor noise, and that compass bias is what limits
   ground truth: 0.11 m slot error and 100% success at 1 degree of bias, about 0.5 m at 6 degrees.
