@@ -48,6 +48,7 @@ class Cfg:
     cbf_lam = 0.25
     r_safe_us = 0.10
     r_safe_ir = 0.10
+    cbf_plane = False    # True: conservative planar-surface weighting on the oblique rays
     # noise
     slip_v = (0.96, 1.00)
     slip_w = (0.75, 0.95)
@@ -699,16 +700,27 @@ def lpsi_control(est, Lpose, vL, wL, off, cfg=Cfg, feedforward=True):
 
 
 def cbf_filter(cmd, ranges, cfg=Cfg):
-    """Closed-form sampled-data barrier on raw range readings.
-    For each ray j at body bearing beta_j: h_j = r_j - r_s,j.  For a radially
-    mounted sensor and a point-like obstacle on the ray, dr_j/dt = -v cos(beta_j)
-    (independent of the turn rate).  Enforcing h_j(k+1) >= (1-lam) h_j(k) gives
-    the linear constraint  v cos(beta_j) <= lam (r_j - r_s,j) / T,
-    and the minimum-deviation solution of the resulting 1-D QP is a clip on v."""
+    """Sampled-data range-restriction filter on raw readings.  NOT a control
+    barrier function; the cbf_ prefix is a legacy name.
+    For each ray j at body bearing beta_j: h_j = r_j - r_s,j.  The admissible
+    speed depends on the surface the ray terminates on.  For a stationary
+    compact reflector that remains the detected return through the step, with v
+    held constant, dr_j/dt = -v cos(beta_j) and h_j(k+1) >= (1-lam) h_j(k)
+    requires v <= lam h_j / (T cos beta_j).  For an extended plane normal to
+    travel, dr_j/dt = -v / cos(beta_j) and the same decrease requires
+    v <= lam h_j cos(beta_j) / T, which is strictly tighter.  cbf_plane selects
+    the conservative weighting; both are 1-D clips on v.  Neither establishes
+    collision avoidance for finite-beam sensors or turning motion."""
     c = cfg
     cb = np.cos(c.ray_ang[3])                                   # IR bearing (60 deg)
+    h_ir = np.minimum(ranges[..., 1], ranges[..., 2]) - c.r_safe_ir
     lim_us = c.cbf_lam * (ranges[..., 0] - c.r_safe_us) / c.dt   # cos(0)=1 (cone axis)
-    lim_ir = c.cbf_lam * (np.minimum(ranges[..., 1], ranges[..., 2]) - c.r_safe_ir) / (c.dt * cb)
+    if getattr(c, "cbf_plane", False):
+        # extended planar surface: dr_j/dt = -v / cos(beta_j), so the admissible
+        # speed carries cos(beta_j) instead of its reciprocal (strictly tighter)
+        lim_ir = c.cbf_lam * h_ir * cb / c.dt
+    else:
+        lim_ir = c.cbf_lam * h_ir / (c.dt * cb)
     vmax = np.minimum(lim_us, lim_ir)
     out = cmd.copy()
     out[..., 0] = np.maximum(np.minimum(cmd[..., 0], vmax), c.v_min)
@@ -829,11 +841,11 @@ def control_step(sim, method):
                 cmd[e, i] = (v, w)
                 if m.get("apf"):
                     filt[e, i] = apf_correction(filt[e, i][None], ranges[e, i][None], c)[0]
-    if m["cbf"] or method == "asa":
+    if m["cbf"] or method == "asa" or m.get("shared_recovery", False):
         lf, li = cbf_filter(filt, ranges, c)
         L = sim.is_leader & sim.alive
         filt[L] = lf[L] if m["cbf"] else filt[L]
-        if m["cbf"]:
+        if m["cbf"] or m.get("shared_recovery", False):
             # rotate-to-clear: if the barrier blocks the leader, turn in place toward the path side
             blocked = L & (filt[..., 0] < 0.03) & (cmd[..., 0] > 0.05)
             side = np.where(np.abs(sim.lead_a) > 0.05, np.sign(sim.lead_a),
