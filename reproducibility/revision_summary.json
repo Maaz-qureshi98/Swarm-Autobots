@@ -1,0 +1,113 @@
+{
+  "low_error_regime": {
+    "bias0.25_p0.0": {
+      "ct_rmse": 0.030869196762891526,
+      "zoh_rmse": 0.03150491015235467,
+      "gain": 0.02017823210378622,
+      "ci95": [
+        -0.026892897128193993,
+        0.033823609935864335
+      ]
+    },
+    "bias0.25_p0.6": {
+      "ct_rmse": 0.04056267470394159,
+      "zoh_rmse": 0.062032543818094116,
+      "gain": 0.34610654009468544,
+      "ci95": [
+        0.3153355346159681,
+        0.3669695980718273
+      ]
+    },
+    "bias0.5_p0.0": {
+      "ct_rmse": 0.04831310068305872,
+      "zoh_rmse": 0.048538341942667956,
+      "gain": 0.004640481124701057,
+      "ci95": [
+        -0.005517999033812059,
+        0.0205535715835283
+      ]
+    },
+    "bias0.5_p0.6": {
+      "ct_rmse": 0.054468462678899175,
+      "zoh_rmse": 0.07267035137309166,
+      "gain": 0.25047200612452625,
+      "ci95": [
+        0.21760773803172465,
+        0.2764168232558288
+      ]
+    }
+  },
+  "plane_filter": {
+    "1": {
+      "contact_free_pct": 95.5,
+      "held_pct": 72.0,
+      "contact_time_s": 1.746,
+      "reach_pct": 96.0
+    },
+    "2": {
+      "contact_free_pct": 92.0,
+      "held_pct": 57.0,
+      "contact_time_s": 2.1880000000000006,
+      "reach_pct": 82.5
+    },
+    "3": {
+      "contact_free_pct": 91.0,
+      "held_pct": 40.5,
+      "contact_time_s": 3.0087500000000005,
+      "reach_pct": 70.5
+    }
+  },
+  "apf_extended_gains": {
+    "0.1": {
+      "1": {
+        "contact_free_pct": 98.0,
+        "held_pct": 88.0,
+        "contact_time_s": 1.104
+      },
+      "2": {
+        "contact_free_pct": 89.5,
+        "held_pct": 78.5,
+        "contact_time_s": 3.7125000000000004
+      },
+      "3": {
+        "contact_free_pct": 86.0,
+        "held_pct": 67.5,
+        "contact_time_s": 5.30775
+      }
+    },
+    "0.15": {
+      "1": {
+        "contact_free_pct": 99.0,
+        "held_pct": 88.5,
+        "contact_time_s": 0.23800000000000002
+      },
+      "2": {
+        "contact_free_pct": 95.5,
+        "held_pct": 83.0,
+        "contact_time_s": 1.14325
+      },
+      "3": {
+        "contact_free_pct": 90.0,
+        "held_pct": 65.0,
+        "contact_time_s": 3.17325
+      }
+    },
+    "0.2": {
+      "1": {
+        "contact_free_pct": 99.0,
+        "held_pct": 87.5,
+        "contact_time_s": 0.21975
+      },
+      "2": {
+        "contact_free_pct": 94.5,
+        "held_pct": 76.0,
+        "contact_time_s": 0.9535
+      },
+      "3": {
+        "contact_free_pct": 85.5,
+        "held_pct": 59.5,
+        "contact_time_s": 4.58075
+      }
+    }
+  }
+}
