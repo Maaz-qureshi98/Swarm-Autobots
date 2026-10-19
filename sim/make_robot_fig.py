@@ -9,6 +9,9 @@ from PIL import Image
 plt.rcParams.update({"font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"], "mathtext.fontset": "stix",
                      "font.size": 6.5, "pdf.fonttype": 42})
 W, H = 3.45, 3.05                          # printed size [in]
+INK, GRAY = "#24292E", "#E5E7E9"           # same ink and box fill as the Fig. 3 flowchart
+SIG = "#5A6B7B"                            # muted slate for signal paths
+US_C, IR_C = "#C9822B", "#5E8C4A"          # ultrasonic / infrared accents
 fig = plt.figure(figsize=(W, H))
 
 
@@ -60,15 +63,15 @@ ax = ax_in(0.02, 0.02, 1.55, 1.12)
 ax.set_aspect("equal"); ax.axis("off")
 title(ax, "(b) Sensor layout")
 R, m = 0.142, 0.10
-ax.add_patch(Rectangle((-0.10, -0.10), 0.20, 0.20, fc="0.9", ec="k", lw=0.6))
-ax.add_patch(Circle((0, 0), R, fill=False, ls="--", lw=0.5, ec="0.4"))
-ax.add_patch(Wedge((m, 0), 0.34, -12, 12, fc="#E39B2D", alpha=0.4, lw=0))
-ax.plot(m, 0, "o", ms=2.6, color="#E39B2D", zorder=5)
+ax.add_patch(Rectangle((-0.10, -0.10), 0.20, 0.20, fc=GRAY, ec=INK, lw=0.65))
+ax.add_patch(Circle((0, 0), R, fill=False, ls="--", lw=0.5, ec="0.45"))
+ax.add_patch(Wedge((m, 0), 0.34, -12, 12, fc=US_C, alpha=0.30, lw=0))
+ax.plot(m, 0, "o", ms=2.6, color=US_C, zorder=5)
 for sg in (1, -1):
     a = np.radians(60 * sg)
     p0 = np.array([m * np.cos(a), m * np.sin(a)]); p1 = p0 + 0.30 * np.array([np.cos(a), np.sin(a)])
-    ax.plot(*zip(p0, p1), color="#6A994E", lw=1.0)
-    ax.plot(*p0, "o", ms=2.6, color="#6A994E", zorder=5)
+    ax.plot(*zip(p0, p1), color=IR_C, lw=1.0)
+    ax.plot(*p0, "o", ms=2.6, color=IR_C, zorder=5)
 ax.plot(0, 0, "+", ms=4, color="k", mew=0.6)
 ax.annotate("", xy=(0.0, 0.215), xytext=(-0.13, 0.215), arrowprops=dict(arrowstyle="-|>", lw=0.6, color="k", mutation_scale=6))
 ax.text(-0.135, 0.215, "heading ", ha="right", va="center", fontsize=5.6)
@@ -78,7 +81,7 @@ ax.text(0.27, -0.36, "IR −60°", fontsize=5.6, ha="left", va="center")
 ax.annotate("mounts at\n0.10 m", xy=(m * np.cos(np.radians(-60)), m * np.sin(np.radians(-60))), xytext=(-0.05, -0.33),
             fontsize=5.6, ha="right", va="center", linespacing=1.0, arrowprops=dict(arrowstyle="-", lw=0.4))
 ax.text(-0.17, 0.0, "$R$ = 0.142 m\n20×20 cm", fontsize=5.6, ha="right", va="center", linespacing=1.0)
-ax.set_xlim(-0.40, 0.72); ax.set_ylim(-0.44, 0.44)
+ax.set_xlim(-0.47, 0.72); ax.set_ylim(-0.44, 0.44)
 
 # ---------------------------------------------------------------- (c) power and signal wiring
 ax = ax_in(1.62, 0.02, 1.80, 1.12)
@@ -86,25 +89,30 @@ ax.set_xlim(0, 1.8); ax.set_ylim(0, 1.2); ax.axis("off")
 title(ax, "(c) Power and signal wiring")
 
 
-def box(x, y, w, h, s, fc):
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.0,rounding_size=0.03", fc=fc, ec="0.25", lw=0.5))
-    ax.text(x + w / 2, y + h / 2, s, ha="center", va="center", fontsize=5.6, linespacing=1.0)
+def box(x, y, w, h, title_s, detail=""):
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.0,rounding_size=0.03", fc=GRAY, ec=INK, lw=0.65))
+    if detail:
+        ax.text(x + w / 2, y + h / 2 + 0.005, title_s, ha="center", va="bottom", fontsize=5.8, fontweight="bold",
+                color=INK, linespacing=1.0)
+        ax.text(x + w / 2, y + h / 2 - 0.015, detail, ha="center", va="top", fontsize=5.4, color=INK, linespacing=1.0)
+    else:
+        ax.text(x + w / 2, y + h / 2, title_s, ha="center", va="center", fontsize=5.8, fontweight="bold", color=INK,
+                linespacing=1.0)
     return (x, y, w, h)
 
 
 def arrow(p, q, **kw):
-    ax.annotate("", xy=q, xytext=p, arrowprops=dict(arrowstyle="-|>", lw=0.6, color=kw.get("c", "k"),
+    ax.annotate("", xy=q, xytext=p, arrowprops=dict(arrowstyle="-|>", lw=0.65, color=kw.get("c", INK),
                                                     ls=kw.get("ls", "-"), mutation_scale=5, shrinkA=0, shrinkB=0))
 
 
-PW, LG, SG = "#F6D9C9", "#DCE9F5", "#E3EFD9"
-BL = "#2F6690"
-box(0.02, 0.42, 0.34, 0.36, "12 V\nLiPo\n4.2 Ah", PW)
-box(0.48, 0.86, 0.48, 0.26, "2$\\times$LM2596\n12$\\to$5 V", PW)
-box(1.08, 0.86, 0.62, 0.26, "ESP32, sensors,\nrelay + pump", LG)
-box(1.08, 0.47, 0.54, 0.26, "L298N dual\nH-bridge", SG)
-box(1.08, 0.06, 0.54, 0.26, "2 Hall-encoder\nmotors", SG)
-arrow((0.36, 0.68), (0.48, 0.97)); arrow((0.36, 0.56), (1.08, 0.60))
+BL = SIG
+box(0.02, 0.42, 0.38, 0.36, "Battery", "12 V LiPo\n4.2 Ah")
+box(0.48, 0.86, 0.48, 0.26, "2$\\times$LM2596", "12$\\to$5 V")
+box(1.08, 0.86, 0.62, 0.26, "ESP32", "sensors + relay")
+box(1.08, 0.47, 0.54, 0.26, "L298N", "dual H-bridge")
+box(1.08, 0.06, 0.54, 0.26, "Motors", "2 Hall-encoder")
+arrow((0.40, 0.70), (0.48, 0.97)); arrow((0.40, 0.56), (1.08, 0.60))
 ax.text(0.72, 0.62, "12 V", ha="center", va="bottom", fontsize=5.2, color="0.25")
 arrow((0.96, 0.99), (1.08, 0.99))
 arrow((1.42, 0.47), (1.42, 0.32))                               # motor power
@@ -113,7 +121,7 @@ ax.plot([1.62, 1.77, 1.77], [0.19, 0.19, 0.99], color=BL, lw=0.6, ls="--")
 arrow((1.77, 0.99), (1.70, 0.99), c=BL)                         # encoder feedback
 ax.text(1.20, 0.795, "PWM", ha="right", va="center", fontsize=5.2, color=BL)
 ax.text(1.75, 0.55, "encoders", ha="right", va="center", fontsize=5.2, color=BL, rotation=90)
-ax.plot([0.04, 0.13], [0.24, 0.24], color="k", lw=0.6); ax.text(0.16, 0.24, "power", va="center", fontsize=5.2, color="0.25")
+ax.plot([0.04, 0.13], [0.24, 0.24], color=INK, lw=0.65); ax.text(0.16, 0.24, "power", va="center", fontsize=5.2, color="0.25")
 ax.plot([0.04, 0.13], [0.13, 0.13], color=BL, lw=0.6, ls="--"); ax.text(0.16, 0.13, "signal", va="center", fontsize=5.2, color=BL)
 
 fig.savefig("figs/fig_robot.pdf", dpi=600)
