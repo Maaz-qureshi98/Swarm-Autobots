@@ -101,26 +101,35 @@ def box(x, y, w, h, title_s, detail=""):
     return (x, y, w, h)
 
 
-def arrow(p, q, **kw):
-    ax.annotate("", xy=q, xytext=p, arrowprops=dict(arrowstyle="-|>", lw=0.65, color=kw.get("c", INK),
-                                                    ls=kw.get("ls", "-"), mutation_scale=5, shrinkA=0, shrinkB=0))
+def route(pts, c=INK, ls="-"):
+    """Orthogonal connector: polyline with one solid arrowhead at the last point."""
+    pts = np.asarray(pts, float)
+    d = pts[-1] - pts[-2]; d /= np.linalg.norm(d)
+    line = pts.copy(); line[-1] = pts[-1] - 0.03 * d                # stop the stroke under the head
+    ax.plot(line[:, 0], line[:, 1], color=c, lw=0.65, ls=ls, solid_capstyle="butt", zorder=2)
+    ax.annotate("", xy=pts[-1], xytext=pts[-1] - 0.001 * d,
+                arrowprops=dict(arrowstyle="-|>", lw=0.65, color=c, mutation_scale=5, shrinkA=0, shrinkB=0), zorder=3)
+
+
+def lab(x, y, s, c="0.25", **kw):
+    ax.text(x, y, s, fontsize=5.2, color=c, **kw)
 
 
 BL = SIG
 box(0.02, 0.42, 0.38, 0.36, "Battery", "12 V LiPo\n4.2 Ah")
-box(0.48, 0.86, 0.48, 0.26, "2$\\times$LM2596", "12$\\to$5 V")
+box(0.46, 0.86, 0.44, 0.26, "2$\\times$LM2596", "12$\\to$5 V")
 box(1.08, 0.86, 0.62, 0.26, "ESP32", "sensors + relay")
 box(1.08, 0.47, 0.54, 0.26, "L298N", "dual H-bridge")
 box(1.08, 0.06, 0.54, 0.26, "Motors", "2 Hall-encoder")
-arrow((0.40, 0.70), (0.48, 0.97)); arrow((0.40, 0.56), (1.08, 0.60))
-ax.text(0.72, 0.62, "12 V", ha="center", va="bottom", fontsize=5.2, color="0.25")
-arrow((0.96, 0.99), (1.08, 0.99))
-arrow((1.42, 0.47), (1.42, 0.32))                               # motor power
-arrow((1.22, 0.86), (1.22, 0.73), c=BL, ls="--")                # PWM, direction
-ax.plot([1.62, 1.77, 1.77], [0.19, 0.19, 0.99], color=BL, lw=0.6, ls="--")
-arrow((1.77, 0.99), (1.70, 0.99), c=BL)                         # encoder feedback
-ax.text(1.20, 0.795, "PWM", ha="right", va="center", fontsize=5.2, color=BL)
-ax.text(1.75, 0.55, "encoders", ha="right", va="center", fontsize=5.2, color=BL, rotation=90)
+# power (solid)
+route([(0.21, 0.78), (0.21, 0.99), (0.46, 0.99)]);  lab(0.335, 1.005, "12 V", ha="center", va="bottom")
+route([(0.40, 0.60), (1.08, 0.60)]);                lab(0.74, 0.615, "12 V", ha="center", va="bottom")
+route([(0.90, 0.99), (1.08, 0.99)]);                lab(0.99, 1.005, "5 V", ha="center", va="bottom")
+route([(1.35, 0.47), (1.35, 0.32)])
+# signal (dashed)
+route([(1.22, 0.86), (1.22, 0.73)], c=BL, ls="--"); lab(1.20, 0.795, "PWM", c=BL, ha="right", va="center")
+route([(1.62, 0.19), (1.77, 0.19), (1.77, 0.99), (1.70, 0.99)], c=BL, ls="--")
+lab(1.75, 0.55, "encoders", c=BL, ha="right", va="center", rotation=90)
 ax.plot([0.04, 0.13], [0.24, 0.24], color=INK, lw=0.65); ax.text(0.16, 0.24, "power", va="center", fontsize=5.2, color="0.25")
 ax.plot([0.04, 0.13], [0.13, 0.13], color=BL, lw=0.6, ls="--"); ax.text(0.16, 0.13, "signal", va="center", fontsize=5.2, color=BL)
 
